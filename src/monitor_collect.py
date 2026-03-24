@@ -221,6 +221,39 @@ def get_windows_total_memory_bytes() -> int:
     return max(1, int(status.ullTotalPhys))
 
 
+def list_windows_process_snapshot() -> Dict[int, Dict[str, float | int | str]]:
+    ps_command = (
+        "$ErrorActionPreference='Stop'; "
+        "Get-Process | Select-Object Id,ProcessName,CPU,WorkingSet64 | ConvertTo-Json -Compress"
+    )
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", ps_command],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    raw = result.stdout.strip()
+    if not raw:
+        return {}
+
+    parsed = json.loads(raw)
+    entries = parsed if isinstance(parsed, list) else [parsed]
+    snapshot: Dict[int, Dict[str, float | int | str]] = {}
+
+    for item in entries:
+        if not isinstance(item, dict):
+            continue
+        pid = int(item.get("Id", 0) or 0)
+        if pid <= 0:
+            continue
+        snapshot[pid] = {
+            "command": str(item.get("ProcessName", "-")),
+            "cpu_seconds": float(item.get("CPU", 0.0) or 0.0),
+            "working_set": int(item.get("WorkingSet64", 0) or 0),
+        }
+    return snapshot
+
+
 def collect_process_metrics_windows(limit: int) -> Dict[str, object]:
     process_count = 0
     top_cpu_processes: List[Dict[str, object]] = []
@@ -228,47 +261,41 @@ def collect_process_metrics_windows(limit: int) -> Dict[str, object]:
     ignored_pids = {os.getpid(), os.getppid()}
     ignored_commands = {"powershell", "pwsh"}
 
-    ps_command = (
-        "$ErrorActionPreference='Stop'; "
-        "Get-Process | Select-Object Id,ProcessName,CPU,WorkingSet64 | ConvertTo-Json -Compress"
-    )
-
     try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_command],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        raw = result.stdout.strip()
-        if not raw:
+        sample_seconds = 0.25
+        start = list_windows_process_snapshot()
+        time.sleep(sample_seconds)
+        end = list_windows_process_snapshot()
+        if not end:
             return {
                 "process_count": 0,
                 "top_cpu_processes_json": "[]",
                 "top_mem_processes_json": "[]",
             }
 
-        parsed = json.loads(raw)
-        entries = parsed if isinstance(parsed, list) else [parsed]
-        process_count = len(entries)
+        process_count = len(end)
         total_mem = get_windows_total_memory_bytes()
+        cpu_cores = max(1, os.cpu_count() or 1)
         collected: List[Dict[str, object]] = []
 
-        for item in entries:
-            if not isinstance(item, dict):
-                continue
-            pid = int(item.get("Id", 0) or 0)
-            command = str(item.get("ProcessName", "-"))
+        for pid, current in end.items():
+            command = str(current.get("command", "-"))
             if pid in ignored_pids or command.lower() in ignored_commands:
                 continue
-            cpu_seconds = float(item.get("CPU", 0.0) or 0.0)
-            mem_bytes = int(item.get("WorkingSet64", 0) or 0)
+
+            current_cpu_seconds = float(current.get("cpu_seconds", 0.0) or 0.0)
+            start_cpu_seconds = float(start.get(pid, {}).get("cpu_seconds", 0.0) or 0.0)
+            cpu_delta = max(0.0, current_cpu_seconds - start_cpu_seconds)
+            cpu_percent = (cpu_delta / sample_seconds) / cpu_cores * 100.0
+            cpu_percent = max(0.0, min(100.0, cpu_percent))
+
+            mem_bytes = int(current.get("working_set", 0) or 0)
             mem_percent = (mem_bytes / total_mem * 100.0) if total_mem else 0.0
             collected.append(
                 {
                     "pid": pid,
                     "command": command,
-                    "cpu_percent": round(cpu_seconds, 2),
+                    "cpu_percent": round(cpu_percent, 2),
                     "mem_percent": round(mem_percent, 2),
                 }
             )
