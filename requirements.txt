@@ -1,0 +1,8 @@
+# Dependencias externas do projeto
+#
+# Observacao:
+# - O monitor funciona apenas com a biblioteca padrao do Python.
+# - `psutil` e opcional, mas recomendado para melhorar a coleta de processos
+#   e metricas de CPU/memoria em diferentes sistemas.
+
+psutil>=5.9.0
