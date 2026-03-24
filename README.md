@@ -11,8 +11,7 @@ monitora_minha_maquina/
 |   |-- monitor_base.py
 |   |-- monitor_collect.py
 |   |-- monitor_io.py
-|   |-- monitor_recursos.py   <- entrypoint
-|   `-- logs_monitoramento/   <- pode existir aqui
+|   `-- monitor_recursos.py   <- entrypoint
 |-- requirements.txt
 |-- .gitignore
 `-- README.md
