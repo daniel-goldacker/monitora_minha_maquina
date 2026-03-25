@@ -1,7 +1,7 @@
-# Monitor de Recursos da Maquina
+﻿# Monitor de Recursos da Máquina
 
-Projeto Python para monitorar CPU, memoria, swap e disco em Windows/Linux.
-Gera historico de coletas, alertas e relatorio para analise de capacidade.
+Projeto Python para monitorar CPU, memória, swap e disco em Windows/Linux.
+Gera histórico de coletas, alertas e relatório para análise de capacidade.
 
 ## Estrutura real do projeto
 
@@ -19,13 +19,13 @@ monitora_minha_maquina/
 
 ## Entry point
 
-O script executavel e:
+O script executável é:
 
 ```bash
 python src/monitor_recursos.py
 ```
 
-## Instalacao de dependencias
+## Instalação de dependências
 
 O projeto funciona sem bibliotecas externas, mas recomenda `psutil`.
 
@@ -35,14 +35,14 @@ Instalar via `requirements.txt`:
 pip install -r requirements.txt
 ```
 
-## Onde os logs sao gravados
+## Onde os logs são gravados
 
-O valor padrao e `logs_monitoramento`, relativo ao diretorio atual (cwd):
+O valor padrão é `logs_monitoramento`, relativo ao diretório atual (cwd):
 
 - Se rodar no root do projeto: `logs_monitoramento/`
 - Se rodar dentro de `src/`: `src/logs_monitoramento/`
 
-Para evitar duvida, defina explicitamente:
+Para evitar dúvida, defina explicitamente:
 
 ```bash
 python src/monitor_recursos.py --output-dir src/logs_monitoramento
@@ -50,7 +50,7 @@ python src/monitor_recursos.py --output-dir src/logs_monitoramento
 
 ## Arquivos gerados
 
-No diretorio de saida:
+No diretório de saída:
 
 - `monitoramento.csv`
 - `monitoramento.jsonl`
@@ -61,14 +61,14 @@ No diretorio de saida:
 
 ## Recursos do relatorio.html
 
-- resumo executivo com recomendacao automatica:
-  - substituicao recomendada
+- resumo executivo com recomendação automática:
+  - substituição recomendada
   - upgrade recomendado
   - manter com monitoramento
-- indicadores e graficos
-- recorrencia de estados criticos
-- processos mais pesados da ultima coleta
-- secao "Parecer para Envio":
+- indicadores e gráficos
+- recorrência de estados críticos
+- processos mais pesados da última coleta
+- seção "Parecer para Envio":
   - copiar parecer
   - abrir envio por e-mail (mailto)
   - baixar `parecer_substituicao.txt`
@@ -87,24 +87,24 @@ Rodar 20 amostras:
 python src/monitor_recursos.py --interval 60 --samples 20
 ```
 
-Rodar com saida fixa em `src/logs_monitoramento`:
+Rodar com saída fixa em `src/logs_monitoramento`:
 
 ```bash
 python src/monitor_recursos.py --output-dir src/logs_monitoramento
 ```
 
-## Regras padrao de alerta
+## Regras padrão de alerta
 
 - CPU >= 85%
-- Memoria >= 85%
+- Memória >= 85%
 - Swap >= 20%
 - Disco >= 85%
-- Memoria livre <= 2 GB
+- Memória livre <= 2 GB
 - Disco livre <= 10 GB
 
-## Parametrizacao de alertas
+## Parametrização de alertas
 
-Voce pode alterar os limites por linha de comando:
+Você pode alterar os limites por linha de comando:
 
 - `--cpu-threshold`
 - `--mem-threshold`
@@ -129,5 +129,5 @@ python src/monitor_recursos.py \
 
 - Python 3.10+
 - Windows 10/11 ou Linux
-- Dependencias opcionais/recomendadas em `requirements.txt`
-  - `psutil` (melhora coleta de processos e metricas)
+- Dependências opcionais/recomendadas em `requirements.txt`
+  - `psutil` (melhora coleta de processos e métricas)
